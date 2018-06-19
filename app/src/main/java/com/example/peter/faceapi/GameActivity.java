@@ -20,6 +20,8 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.google.android.youtube.player.YouTubePlayerView;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,21 +48,13 @@ import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 public class GameActivity extends AppCompatActivity {
 
-    private static final String TAG = "MainActivity";
-    private String url = "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect";
-    private ImageView faceImage;
-    private TextView happiness;
-    private TextView anger;
-    private TextView sadness;
-    private TextView neutral;
-    private TextView gender;
-    private TextView age;
-    private Integer permissionRequestCode = 1234;
-    private ProgressBar progressBar;
-    private Button CameraBtn;
-    private Uri ImageUri;
+    private static final String TAG = "GameActivity";//log tage
+    private String url = "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect";//Azure Face API url
 
-    private String YoutubeAPIKey = "AIzaSyDkPthW_w7svNz5hqzhFJmaChxojIFyV34";
+    private Uri ImageUri; //image file saved uri
+    private String YoutubeAPIKey = "AIzaSyDkPthW_w7svNz5hqzhFJmaChxojIFyV34"; //Youtube API key
+
+    private YouTubePlayerView myoutubeplayerview;
 
 
     @Override
@@ -68,34 +62,19 @@ public class GameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
+        // enable File accessablity
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
         StrictMode.setVmPolicy(builder.build());
         builder.detectFileUriExposure();
 
-        getPermission();
 
-        faceImage = findViewById(R.id.faceImage);
-        happiness = findViewById(R.id.happiness);
-        sadness = findViewById(R.id.sadness);
-        anger = findViewById(R.id.anger);
-        progressBar = findViewById(R.id.loadingbar);
-        neutral = findViewById(R.id.neutral);
-        gender = findViewById(R.id.gender);
-        age = findViewById(R.id.age);
-        progressBar.setVisibility(View.GONE);
-        CameraBtn = findViewById(R.id.cameraBtn);
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        File file = new File("/storage/emulated/0/Pictures/FaceImage.jpg");
+        intent.putExtra(MediaStore.EXTRA_OUTPUT,Uri.fromFile(file));
+        ImageUri = FileProvider.getUriForFile(GameActivity.this,"com.example.provider", file);
 
-        CameraBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                File file = new File("/storage/emulated/0/Pictures/FaceImage.jpg");
-                intent.putExtra(MediaStore.EXTRA_OUTPUT,Uri.fromFile(file));
-                ImageUri = FileProvider.getUriForFile(GameActivity.this,"com.example.provider", file);
-                startActivityForResult(intent,999);
-            }
-        });
+
     }
 
     @Override
@@ -108,8 +87,6 @@ public class GameActivity extends AppCompatActivity {
                 Uri selectedImage = ImageUri;
                 getContentResolver().notifyChange(selectedImage, null);
                 Bitmap reducedSizeBitmap = getBitmap(ImageUri.getPath());
-                if(reducedSizeBitmap != null)
-                    faceImage.setImageBitmap(reducedSizeBitmap);
                 OutputStream fOut = null;
                 File file = new File("/storage/emulated/0/Pictures/", "compressed.jpg");
                 try {
@@ -186,9 +163,7 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
-    private void getPermission(){
-        ActivityCompat.requestPermissions(GameActivity.this,new String[]{READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE,CAMERA},permissionRequestCode);
-    }
+
 
     class FaceAPItask extends AsyncTask<Void, Void, String> {
 
@@ -201,11 +176,7 @@ public class GameActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String result) {
-            progressBar.setVisibility(View.GONE);
             Double HappyScore = 0.0;
-            Double AngerScore = 0.0;
-            Double SadScore = 0.0;
-            Double NeutralScore =0.0;
             JSONArray jsonArray = null;
             try{
                 if (result != null)
@@ -226,22 +197,8 @@ public class GameActivity extends AppCompatActivity {
                 }
                 jsonArray = new JSONArray(result);
                 HappyScore = jsonArray.getJSONObject(0).getJSONObject("faceAttributes").getJSONObject("emotion").getDouble("happiness");
-                AngerScore = jsonArray.getJSONObject(0).getJSONObject("faceAttributes").getJSONObject("emotion").getDouble("anger");
-                SadScore = jsonArray.getJSONObject(0).getJSONObject("faceAttributes").getJSONObject("emotion").getDouble("sadness");
-                NeutralScore = jsonArray.getJSONObject(0).getJSONObject("faceAttributes").getJSONObject("emotion").getDouble("neutral");
-                String emotionScore = "Happiness value: " + HappyScore*100;
-                String angerString = "Anger value: " + AngerScore*100;
-                String sadString = "Sadness value: " + SadScore*100;
-                String neutralString = "Neutral value: "+ NeutralScore*100;
-                String genderString = "Gender: " + jsonArray.getJSONObject(0).getJSONObject("faceAttributes").getString("gender");
-                String ageString = "Age: "+ jsonArray.getJSONObject(0).getJSONObject("faceAttributes").getString("age");
-                Log.d(TAG, "onPostExecute: "+emotionScore);
-                happiness.setText(emotionScore);
-                anger.setText(angerString);
-                sadness.setText(sadString);
-                neutral.setText(neutralString);
-                gender.setText(genderString);
-                age.setText(ageString);
+                String HappyscoreString = "Happiness value: " + HappyScore*100;
+                Log.d(TAG, "onPostExecute: "+ HappyscoreString);
 
             }catch (JSONException e){
                 Log.e(TAG, "onPostExecute: "+e.getMessage() );
@@ -250,11 +207,9 @@ public class GameActivity extends AppCompatActivity {
         @Override
         protected void onProgressUpdate(Void... values) {
             super.onProgressUpdate(values);
-            progressBar.setVisibility(View.VISIBLE);
         }
         @Override
         protected String doInBackground(Void... voids) {
-            progressBar.setVisibility(View.VISIBLE);
             HttpClient httpClient = HttpClients.createDefault();
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);

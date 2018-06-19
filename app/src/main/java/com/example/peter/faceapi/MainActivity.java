@@ -45,9 +45,33 @@ import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 public class MainActivity extends AppCompatActivity {
+
+    //log tag
+    private static final String TAG = "MainActivity";
+    //UI
+    private Button startBtn;
+
+    private Integer permissionRequestCode = 1234;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        startBtn = findViewById(R.id.startBtn);
+        //Ask for permission
+        getPermission();
+        // set Click listener for new intent
+        startBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this,GameActivity.class);
+                startActivity(intent);
+            }
+        });
+    }
+    private void getPermission(){
+        ActivityCompat.requestPermissions(MainActivity.this,
+                new String[]{READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE,CAMERA}
+                ,permissionRequestCode);
     }
 }
