@@ -1,3 +1,4 @@
+
 package com.example.peter.faceapi;
 
 import android.app.Activity;
@@ -6,21 +7,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
-import android.os.SystemClock;
-import android.provider.MediaStore;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.FileProvider;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
+
 
 import com.google.android.youtube.player.YouTubeBaseActivity;
 import com.google.android.youtube.player.YouTubeInitializationResult;
@@ -32,13 +23,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.List;
+
 
 import cz.msebera.android.httpclient.HttpEntity;
 import cz.msebera.android.httpclient.HttpResponse;
@@ -49,9 +38,6 @@ import cz.msebera.android.httpclient.entity.FileEntity;
 import cz.msebera.android.httpclient.impl.client.HttpClients;
 import cz.msebera.android.httpclient.util.EntityUtils;
 
-import static android.Manifest.permission.CAMERA;
-import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
-import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 public class GameActivity extends YouTubeBaseActivity {
 
@@ -85,10 +71,10 @@ public class GameActivity extends YouTubeBaseActivity {
             @Override
             public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
                 Log.d(TAG, "onInitializationSuccess: Initializing success");
-                    videoIndex = 0;
-                    youTubePlayer.loadVideo(playlist.get(videoIndex).getViedoID(), playlist.get(videoIndex).getStartTime());
-                    youTubePlayer.play();
-                    playvideolist(youTubePlayer);
+                videoIndex = 0;
+                youTubePlayer.loadVideo(playlist.get(videoIndex).getVideoID(), playlist.get(videoIndex).getStartTime());
+                youTubePlayer.play();
+                playvideolist(youTubePlayer);
             }
 
             @Override
@@ -111,7 +97,7 @@ public class GameActivity extends YouTubeBaseActivity {
                     videoIndex++;
                     handler.removeCallbacks(this);
                     if(videoIndex < playlist.size()) {
-                        youTubePlayer.loadVideo(playlist.get(videoIndex).getViedoID(), playlist.get(videoIndex).getStartTime());
+                        youTubePlayer.loadVideo(playlist.get(videoIndex).getVideoID(), playlist.get(videoIndex).getStartTime());
                         youTubePlayer.play();
                         playvideolist(youTubePlayer);
                     }else{
@@ -256,3 +242,4 @@ public class GameActivity extends YouTubeBaseActivity {
         }
     }
 }
+

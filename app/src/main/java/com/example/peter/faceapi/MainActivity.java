@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 import cz.msebera.android.httpclient.HttpEntity;
 import cz.msebera.android.httpclient.HttpResponse;
@@ -52,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
     private Button startBtn;
 
     private Integer permissionRequestCode = 1234;
+    private ArrayList<YoutubevideoUnit> playlist = null;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -65,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this,GameActivity.class);
+                intent.putExtra("playlist",playlist);
                 startActivity(intent);
             }
         });
@@ -73,5 +77,13 @@ public class MainActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(MainActivity.this,
                 new String[]{READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE,CAMERA}
                 ,permissionRequestCode);
+    }
+
+    public void setPlaylist(ArrayList<YoutubevideoUnit> playlist) {
+        this.playlist = playlist;
+        playlist = new ArrayList<YoutubevideoUnit>();
+        playlist.add(new YoutubevideoUnit("PfvSPvKQEeI", 10*1000, 20*1000));
+        playlist.add(new YoutubevideoUnit("fSnQJFf27us", 10*1000, 20*1000));
+        playlist.add(new YoutubevideoUnit("5LvmhbVxjp4", 10*1000, 20*1000));
     }
 }
