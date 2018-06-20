@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
         startBtn = findViewById(R.id.startBtn);
         //Ask for permission
         getPermission();
+        setPlaylist();
         // set Click listener for new intent
         startBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -79,8 +80,7 @@ public class MainActivity extends AppCompatActivity {
                 ,permissionRequestCode);
     }
 
-    public void setPlaylist(ArrayList<YoutubevideoUnit> playlist) {
-        this.playlist = playlist;
+    public void setPlaylist() {
         playlist = new ArrayList<YoutubevideoUnit>();
         playlist.add(new YoutubevideoUnit("PfvSPvKQEeI", 10*1000, 20*1000));
         playlist.add(new YoutubevideoUnit("fSnQJFf27us", 10*1000, 20*1000));

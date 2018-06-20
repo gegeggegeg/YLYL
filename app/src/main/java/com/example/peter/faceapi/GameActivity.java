@@ -102,6 +102,8 @@ public class GameActivity extends YouTubeBaseActivity {
                         playvideolist(youTubePlayer);
                     }else{
                         youTubePlayer.pause();
+                        youTubePlayer.release();
+                        finish();
                     }
                 }
             }
