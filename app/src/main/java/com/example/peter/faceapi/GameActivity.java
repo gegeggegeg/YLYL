@@ -6,7 +6,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.os.StrictMode;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -20,6 +22,9 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.google.android.youtube.player.YouTubeBaseActivity;
+import com.google.android.youtube.player.YouTubeInitializationResult;
+import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerView;
 
 import org.json.JSONArray;
@@ -32,6 +37,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 import cz.msebera.android.httpclient.HttpEntity;
 import cz.msebera.android.httpclient.HttpResponse;
@@ -46,7 +53,7 @@ import static android.Manifest.permission.CAMERA;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
-public class GameActivity extends AppCompatActivity {
+public class GameActivity extends YouTubeBaseActivity {
 
     private static final String TAG = "GameActivity";//log tage
     private String url = "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect";//Azure Face API url
@@ -54,8 +61,10 @@ public class GameActivity extends AppCompatActivity {
     private Uri ImageUri; //image file saved uri
     private String YoutubeAPIKey = "AIzaSyDkPthW_w7svNz5hqzhFJmaChxojIFyV34"; //Youtube API key
 
+    private YouTubePlayer.OnInitializedListener mInitializer;
     private YouTubePlayerView myoutubeplayerview;
-
+    private ArrayList<YoutubevideoUnit> playlist;
+    private int videoIndex;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,39 +76,50 @@ public class GameActivity extends AppCompatActivity {
         StrictMode.setVmPolicy(builder.build());
         builder.detectFileUriExposure();
 
+        //getting playlist from MainActivity;
+        Intent getintent = getIntent();
+        playlist = (ArrayList<YoutubevideoUnit>) getintent.getSerializableExtra("playlist");
 
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        File file = new File("/storage/emulated/0/Pictures/FaceImage.jpg");
-        intent.putExtra(MediaStore.EXTRA_OUTPUT,Uri.fromFile(file));
-        ImageUri = FileProvider.getUriForFile(GameActivity.this,"com.example.provider", file);
+        myoutubeplayerview = findViewById(R.id.playerview);
+        mInitializer = new YouTubePlayer.OnInitializedListener() {
+            @Override
+            public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
+                Log.d(TAG, "onInitializationSuccess: Initializing success");
+                    videoIndex = 0;
+                    youTubePlayer.loadVideo(playlist.get(videoIndex).getViedoID(), playlist.get(videoIndex).getStartTime());
+                    youTubePlayer.play();
+                    playvideolist(youTubePlayer);
+            }
 
+            @Override
+            public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
 
+            }
+        };
+        myoutubeplayerview.initialize(YoutubeAPIKey,mInitializer);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == 999 && resultCode == Activity.RESULT_OK){
-            Log.d(TAG, "onActivityResult: requestcode ok");
-            if(ImageUri != null) {
-                Log.d(TAG, "onActivityResult: Uri != null");
-                Uri selectedImage = ImageUri;
-                getContentResolver().notifyChange(selectedImage, null);
-                Bitmap reducedSizeBitmap = getBitmap(ImageUri.getPath());
-                OutputStream fOut = null;
-                File file = new File("/storage/emulated/0/Pictures/", "compressed.jpg");
-                try {
-                    fOut = new FileOutputStream(file);
-                    reducedSizeBitmap.compress(Bitmap.CompressFormat.JPEG,100,fOut);
-                    fOut.close();
-                }catch (Exception e){
-                    Log.e(TAG, "onActivityResult: "+e.getMessage() );
+    private void playvideolist(final YouTubePlayer youTubePlayer) {
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                if(youTubePlayer.getCurrentTimeMillis() <= playlist.get(videoIndex).getEndTime()) {
+                    handler.postDelayed(this, 1000);
+                    Log.d(TAG, "run: current time: "+youTubePlayer.getCurrentTimeMillis());
+                    Log.d(TAG, "run: endt time: " + playlist.get(videoIndex).getEndTime());
+                } else {
+                    videoIndex++;
+                    handler.removeCallbacks(this);
+                    if(videoIndex < playlist.size()) {
+                        youTubePlayer.loadVideo(playlist.get(videoIndex).getViedoID(), playlist.get(videoIndex).getStartTime());
+                        youTubePlayer.play();
+                        playvideolist(youTubePlayer);
+                    }else{
+                        youTubePlayer.pause();
+                    }
                 }
-                FaceAPItask faceAPItask = new FaceAPItask(file);
-                faceAPItask.execute();
             }
-        }
+        }, 1000);
     }
 
     private Bitmap getBitmap(String path) {
@@ -139,8 +159,7 @@ public class GameActivity extends AppCompatActivity {
                 int width = b.getWidth();
                 Log.d(TAG, "1th scale operation dimenions - width: " + width + ", height: " + height);
 
-                double y = Math.sqrt(IMAGE_MAX_SIZE
-                        / (((double) width) / height))/1.5;
+                double y = Math.sqrt(IMAGE_MAX_SIZE / (((double) width) / height));
                 double x = (y / height) * width;
 
                 Bitmap scaledBitmap = Bitmap.createScaledBitmap(b, (int) x,
@@ -162,8 +181,6 @@ public class GameActivity extends AppCompatActivity {
             return null;
         }
     }
-
-
 
     class FaceAPItask extends AsyncTask<Void, Void, String> {
 
