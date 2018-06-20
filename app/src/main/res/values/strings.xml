@@ -3,8 +3,9 @@
     <string name="happiness">Happiness</string>
     <string name="sadness">Sadness</string>
     <string name="anger">Anger</string>
-    <string name="Camera">Take Photo</string>
+    <string name="Start">Start</string>
     <string name="Neutral">Neutral</string>
     <string name="Age">Age</string>
     <string name="Gender">Gender</string>
+    <string name="GameTitle">You laugh  You Lose</string>
 </resources>
