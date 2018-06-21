@@ -63,24 +63,28 @@ public class MainActivity extends AppCompatActivity {
         startBtn = findViewById(R.id.startBtn);
         //Ask for permission
         getPermission();
+        //Initialize playlist
         setPlaylist();
         // set Click listener for new intent
         startBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this,GameActivity.class);
+                Log.d(TAG, "onClick: transfer playlist to GameActivity");
                 intent.putExtra("playlist",playlist);
                 startActivity(intent);
             }
         });
     }
     private void getPermission(){
+        Log.d(TAG, "getPermission: request premission from user");
         ActivityCompat.requestPermissions(MainActivity.this,
                 new String[]{READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE,CAMERA}
                 ,permissionRequestCode);
     }
 
     public void setPlaylist() {
+        Log.d(TAG, "setPlaylist: Initialize playlist");
         playlist = new ArrayList<YoutubevideoUnit>();
         playlist.add(new YoutubevideoUnit("PfvSPvKQEeI", 10*1000, 20*1000));
         playlist.add(new YoutubevideoUnit("fSnQJFf27us", 10*1000, 20*1000));
